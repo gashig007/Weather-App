@@ -9,5 +9,29 @@
         android:id="@+id/weatherFragment"
         android:name="com.geektech.homework53.data.ui.WeatherFragment"
         android:label="fragment_weather"
-        tools:layout="@layout/fragment_weather" />
+        tools:layout="@layout/fragment_weather" >
+        <argument
+            android:name="city"
+            android:defaultValue="Bishkek"
+            app:argType="string"
+            app:nullable="true"/>
+        <action
+            android:id="@+id/action_weatherFragment_to_weatherDetailFragment"
+            app:destination="@id/weatherDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/weatherDetailFragment"
+        android:name="com.geektech.homework53.data.ui.weather_detail.WeatherDetailFragment"
+        android:label="WeathersDetailFragment">
+        <action
+            android:id="@+id/action_weatherDetailFragment_to_weatherFragment"
+            app:destination="@id/weatherFragment" >
+            <argument
+                android:name="city"
+                app:argType="string"
+                app:nullable="false"/>
+
+        </action>
+    </fragment>
 </navigation>

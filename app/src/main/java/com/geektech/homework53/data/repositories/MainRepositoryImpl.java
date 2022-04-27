@@ -3,17 +3,22 @@ package com.geektech.homework53.data.repositories;
 import androidx.lifecycle.MutableLiveData;
 
 import com.geektech.homework53.common.Resource;
+import com.geektech.homework53.data.model.MainResponse;
 import com.geektech.homework53.data.model.WeatherApp;
 import com.geektech.homework53.data.remote.WeatherApi;
+import com.geektech.homework53.domain.repository.MainRepository;
+
+import javax.inject.Inject;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainRepository {
+public class MainRepositoryImpl implements MainRepository {
     private WeatherApi api;
 
-    public MainRepository(WeatherApi api) {
+    @Inject
+    public MainRepositoryImpl(WeatherApi api) {
         this.api = api;
     }
 
@@ -39,4 +44,8 @@ public class MainRepository {
         return liveData;
     }
 
+    @Override
+    public MutableLiveData<Resource<MainResponse>> getWeathers() {
+        return null;
+    }
 }

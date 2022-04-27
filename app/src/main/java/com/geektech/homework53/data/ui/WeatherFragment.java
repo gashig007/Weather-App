@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.provider.Settings;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.geektech.homework53.R;
 import com.geektech.homework53.base.BaseFragment;
+import com.geektech.homework53.common.OnItemClick;
 import com.geektech.homework53.common.Resource;
 import com.geektech.homework53.data.model.MainResponse;
 import com.geektech.homework53.data.model.System;
@@ -29,9 +31,13 @@ import com.geektech.homework53.databinding.FragmentWeatherBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
+public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implements OnItemClick<Integer> {
 
     private MainResponse main;
     private System sys;
@@ -39,15 +45,15 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
     private WeatherApp weather;
     private Wind wind;
 
-    private String cityName = "Bishkek";
-
     private WeatherViewModel weatherViewModel;
-
+    private WeatherFragmentArgs args;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         weatherViewModel = new ViewModelProvider(requireActivity()).get(WeatherViewModel.class);
+        args = WeatherFragmentArgs.fromBundle(getArguments());
+
     }
 
     @Override
@@ -62,12 +68,17 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
 
     @Override
     protected void callRequests() {
-        weatherViewModel.getWeatherByCityName(cityName);
+        weatherViewModel.getWeatherByCityName(args.getCity());
     }
 
     @Override
     protected void setupListeners() {
-
+binding.locationTv.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        navController.navigate(R.id.weatherDetailFragment);
+    }
+});
     }
 
     @Override
@@ -94,6 +105,7 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
                         weatherList = (ArrayList<Weather>) resource.data.getWeather();
                         binding.progressBar.setVisibility(View.GONE);
                         setCurrentWeather();
+                        binding.locationTv.setText(resource.data.getName());
                         break;
                     }
                     case ERROR: {
@@ -106,11 +118,9 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
 
     @SuppressLint("SetTextI18n")
     private void setCurrentWeather() {
-
-        binding.locationTv.setText(cityName);
-        binding.dateTv.setText(getDate(System.currentTimeMillis()));
-
-        //Setting weather status
+        SimpleDateFormat realTimeFormat = new SimpleDateFormat("EEEE, dd MMMM y | HH:mm a", Locale.ROOT);
+        String realTime = String.valueOf(realTimeFormat.format(java.lang.System.currentTimeMillis()));
+        binding.dateTv.setText(realTime);
         binding.weatherStatus.setText(weatherList.get(0).getMain());
         Glide.with(requireContext())
                 .load("https://openweathermap.org/img/wn/" + weatherList.get(0).getIcon() + ".png")
@@ -118,9 +128,9 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
                 .into(binding.weatherStatusImg);
 
         //Setting temperature
-        binding.tempTv.setText(Math.round(main.getTemp()-273.15) + "");
-        binding.minTempTv.setText(Math.round(main.getTempMin()-273.15) + "°C");
-        binding.maxTempTv.setText(Math.round(main.getTempMax()-273.15) + "°C");
+        binding.tempTv.setText(Math.round(main.getTemp() - 273.15) + "");
+        binding.minTempTv.setText(Math.round(main.getTempMin() - 273.15) + "°C");
+        binding.maxTempTv.setText(Math.round(main.getTempMax() - 273.15) + "°C");
 
         //Setting extras
         binding.humidityTv.setText(main.getHumidity() + "%");
@@ -132,7 +142,7 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
         binding.sunsetTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunset())));
 
         //Setting daytime
-        int daytime = sys.getSunset()-sys.getSunrise();
+        int daytime = sys.getSunset() - sys.getSunrise();
         binding.daytimeTv.setText(getHours(daytime));
     }
 
@@ -145,12 +155,17 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> {
         return DateUtils.formatDateTime(context, time * 1000, DateUtils.FORMAT_SHOW_TIME);
     }
 
-    private String getHours(int time){
+    private String getHours(int time) {
 
         int hours = (int) TimeUnit.SECONDS.toHours(time);
         int minutes = (int) ((int) TimeUnit.SECONDS.toMinutes(time) -
-                (TimeUnit.SECONDS.toHours(time)* 60));
+                (TimeUnit.SECONDS.toHours(time) * 60));
 
         return hours + "h " + minutes + "m";
+    }
+
+    @Override
+    public void onItemClick(Integer data) {
+
     }
 }
