@@ -1,5 +1,11 @@
 package com.geektech.homework53.di;
 
+import android.content.Context;
+
+import androidx.room.Room;
+
+import com.geektech.homework53.data.local.AppDataBase;
+import com.geektech.homework53.data.local.WeatherDao;
 import com.geektech.homework53.data.remote.WeatherApi;
 import com.geektech.homework53.data.repositories.MainRepositoryImpl;
 import com.geektech.homework53.domain.repository.MainRepository;
@@ -9,6 +15,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -42,7 +49,18 @@ public abstract class AppModule {
 
     @Provides
     @Singleton
-    public static MainRepository proviteMainRepository(WeatherApi api) {
-        return new MainRepositoryImpl(api);
+    public static MainRepository proviteMainRepository(WeatherApi api, WeatherDao dao) {
+        return new MainRepositoryImpl(api, dao);
+    }
+
+    @Provides
+    public static AppDataBase provideDataBase(@ApplicationContext Context context) {
+        return Room.databaseBuilder(context, AppDataBase.class, "database").allowMainThreadQueries()
+                .fallbackToDestructiveMigration().build();
+    }
+
+    @Provides
+    public static WeatherDao provideDao(AppDataBase dataBase) {
+        return dataBase.weatherDao();
     }
 }

@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -12,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.provider.Settings;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,38 +25,55 @@ import com.geektech.homework53.R;
 import com.geektech.homework53.base.BaseFragment;
 import com.geektech.homework53.common.OnItemClick;
 import com.geektech.homework53.common.Resource;
+import com.geektech.homework53.data.local.WeatherDao;
 import com.geektech.homework53.data.model.MainResponse;
 import com.geektech.homework53.data.model.System;
 import com.geektech.homework53.data.model.Weather;
 import com.geektech.homework53.data.model.WeatherApp;
 import com.geektech.homework53.data.model.Wind;
 import com.geektech.homework53.databinding.FragmentWeatherBinding;
+import com.google.zxing.client.android.Intents;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanIntentResult;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implements OnItemClick<Integer> {
-
+    private WeatherFragmentArgs args;
     private MainResponse main;
     private System sys;
     private ArrayList<Weather> weatherList = new ArrayList<>();
     private WeatherApp weather;
     private Wind wind;
 
+    private String cityName;
+
     private WeatherViewModel weatherViewModel;
-    private WeatherFragmentArgs args;
+
+    @Inject
+    WeatherDao dao;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         weatherViewModel = new ViewModelProvider(requireActivity()).get(WeatherViewModel.class);
-        args = WeatherFragmentArgs.fromBundle(getArguments());
-
+        cityName = "Bishkek";
+        try {
+            args = WeatherFragmentArgs.fromBundle(getArguments());
+        } catch (Exception e) {
+            Log.e("Error:", e.getLocalizedMessage());
+        }
+        weatherViewModel.getWeatherByCityName(args.getCity());
     }
 
     @Override
@@ -68,17 +88,28 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
 
     @Override
     protected void callRequests() {
-        weatherViewModel.getWeatherByCityName(args.getCity());
+        Log.e("args", args.getCity());
+
+        if (args != null) {
+//            args = WeatherFragmentArgs.fromBundle(getArguments());
+            Log.e("args", args.getCity());
+            cityName = args.getCity();
+        } else {
+            Log.e("args", "args is empty");
+            cityName = "Bishkek";
+        }
+        weatherViewModel.getWeatherByCityName(cityName);
     }
 
     @Override
     protected void setupListeners() {
-binding.locationTv.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View view) {
-        navController.navigate(R.id.weatherDetailFragment);
-    }
-});
+        binding.rectangle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                navController.navigate(R.id.action_weatherFragment_to_weatherDetailFragment);
+            }
+        });
+
     }
 
     @Override
@@ -105,11 +136,21 @@ binding.locationTv.setOnClickListener(new View.OnClickListener() {
                         weatherList = (ArrayList<Weather>) resource.data.getWeather();
                         binding.progressBar.setVisibility(View.GONE);
                         setCurrentWeather();
-                        binding.locationTv.setText(resource.data.getName());
                         break;
                     }
                     case ERROR: {
                         Toast.makeText(requireContext(), resource.msg, Toast.LENGTH_SHORT).show();
+                        wind = dao.getWeather().getWind();
+                        weather = dao.getWeather();
+                        main = dao.getWeather().getMain();
+                        sys = dao.getWeather().getSys();
+                        weatherList = (ArrayList<Weather>) dao.getWeather().getWeather();
+                        binding.progressBar.setVisibility(View.GONE);
+                        setCurrentWeather();
+                        binding.cardView.setVisibility(View.VISIBLE);
+                        binding.imageIv.setVisibility(View.VISIBLE);
+
+                        break;
                     }
                 }
             }
@@ -118,9 +159,11 @@ binding.locationTv.setOnClickListener(new View.OnClickListener() {
 
     @SuppressLint("SetTextI18n")
     private void setCurrentWeather() {
-        SimpleDateFormat realTimeFormat = new SimpleDateFormat("EEEE, dd MMMM y | HH:mm a", Locale.ROOT);
-        String realTime = String.valueOf(realTimeFormat.format(java.lang.System.currentTimeMillis()));
-        binding.dateTv.setText(realTime);
+
+        binding.locationTv.setText(cityName);
+        binding.dateTv.setText(getDate(java.lang.System.currentTimeMillis()));
+
+        //Setting weather status
         binding.weatherStatus.setText(weatherList.get(0).getMain());
         Glide.with(requireContext())
                 .load("https://openweathermap.org/img/wn/" + weatherList.get(0).getIcon() + ".png")

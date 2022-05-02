@@ -1,5 +1,11 @@
 package com.geektech.homework53.data.model;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverter;
+import androidx.room.TypeConverters;
+
+import com.geektech.homework53.data.local.converters.InfoTypeConverter;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -8,6 +14,7 @@ import java.util.List;
 public class MainResponse {
     @SerializedName("temp")
     @Expose
+    @TypeConverters(InfoTypeConverter.class)
     private Double temp;
     @SerializedName("feels_like")
     @Expose

@@ -3,7 +3,9 @@ package com.geektech.homework53.data.repositories;
 import androidx.lifecycle.MutableLiveData;
 
 import com.geektech.homework53.common.Resource;
+import com.geektech.homework53.data.local.WeatherDao;
 import com.geektech.homework53.data.model.MainResponse;
+import com.geektech.homework53.data.model.Weather;
 import com.geektech.homework53.data.model.WeatherApp;
 import com.geektech.homework53.data.remote.WeatherApi;
 import com.geektech.homework53.domain.repository.MainRepository;
@@ -16,10 +18,12 @@ import retrofit2.Response;
 
 public class MainRepositoryImpl implements MainRepository {
     private WeatherApi api;
+    private WeatherDao dao;
 
     @Inject
-    public MainRepositoryImpl(WeatherApi api) {
+    public MainRepositoryImpl(WeatherApi api, WeatherDao dao) {
         this.api = api;
+        this.dao = dao;
     }
 
     public MutableLiveData<Resource<WeatherApp>> getWeatherByCityName(String cityName) {
@@ -30,6 +34,8 @@ public class MainRepositoryImpl implements MainRepository {
             public void onResponse(Call<WeatherApp> call, Response<WeatherApp> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     liveData.setValue(Resource.success(response.body()));
+                    dao.insert(response.body());
+
                 } else {
                     liveData.setValue(Resource.error(response.message(), null));
                 }
@@ -47,5 +53,27 @@ public class MainRepositoryImpl implements MainRepository {
     @Override
     public MutableLiveData<Resource<MainResponse>> getWeathers() {
         return null;
+    }
+
+    @Override
+    public MutableLiveData<Resource<Weather>> getWeatherById(Integer id) {
+        MutableLiveData<Resource<Weather>> liveData = new MutableLiveData<>();
+        liveData.setValue(Resource.loading());
+        api.getWeatherById(id).enqueue(new Callback<Weather>() {
+            @Override
+            public void onResponse(Call<Weather> call, Response<Weather> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    liveData.setValue(Resource.success(response.body()));
+                } else {
+                    liveData.setValue(Resource.error(response.message(), null));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Weather> call, Throwable t) {
+                liveData.setValue(Resource.error(t.getLocalizedMessage(), null));
+            }
+        });
+        return liveData;
     }
 }
