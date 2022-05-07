@@ -49,10 +49,10 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
         binding.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (binding.edittext.getText().toString().isEmpty()) {
+                if (binding.edittextWeather.getText().toString().isEmpty()) {
                     Toast.makeText(requireActivity(), "Напишите город", Toast.LENGTH_SHORT).show();
                 } else {
-                    navController.navigate(WeatherDetailFragmentDirections.actionWeatherDetailFragmentToWeatherFragment(binding.edittext.getText().toString()));
+                    navController.navigate(WeatherDetailFragmentDirections.actionWeatherDetailFragmentToWeatherFragment(binding.edittextWeather.getText().toString()));
                 }
             }
         });
@@ -60,30 +60,10 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
 
     @Override
     protected void setupObservers() {
-        viewModel.liveData.observe(getViewLifecycleOwner(), new Observer<Resource<Weather>>() {
-            @Override
-            public void onChanged(Resource<Weather> weatherResource) {
-                switch (weatherResource.status) {
-                    case SUCCESS:
-                        Weather weather = weatherResource.data;
-                        binding.tvWeatherText.setText(weather.getMain());
-                        binding.tvWeatherStatus.setText(weather.getDescription());
-                        Glide.with(binding.getRoot()).load(weather.getIcon())
-                                .centerCrop().into(binding.ivWeather);
-                        break;
-                    case ERROR:
-                        baseState();
-                        Snackbar.make(binding.getRoot(), weatherResource.msg, BaseTransientBottomBar.LENGTH_LONG);
-                        break;
-                    case LOADING:
-                        loadingState();
-                        break;
-                }
-            }
-        });
+
     }
 
-    private void generateQr(int weatherId){
+/*    private void generateQr(int weatherId){
         try {
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             Bitmap bitmap = barcodeEncoder.encodeBitmap(String.valueOf(weatherId), BarcodeFormat.QR_CODE, 200, 200);
@@ -108,5 +88,5 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
         binding.ivWeather.setVisibility(View.VISIBLE);
         binding.ivGr.setVisibility(View.VISIBLE);
         binding.progress.setVisibility(View.GONE);
-    }
+    }*/
 }

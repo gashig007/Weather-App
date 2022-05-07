@@ -1,11 +1,25 @@
 package com.geektech.homework53.data.model;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
-
+@Entity
 public class WeatherApp {
+    @PrimaryKey(autoGenerate = true)
+    private int idDao;
+
+    public int getIdDao() {
+        return idDao;
+    }
+
+    public void setIdDao(int idDao) {
+        this.idDao = idDao;
+    }
+
     @SerializedName("coord")
     @Expose
     private Coord coord;
@@ -30,6 +44,23 @@ public class WeatherApp {
     @SerializedName("dt")
     @Expose
     private Integer dt;
+
+    public Image getImage() {
+        return image;
+    }
+
+    public void setImage(Image image) {
+        this.image = image;
+    }
+
+    public System getSystem() {
+        return system;
+    }
+
+    public void setSystem(System system) {
+        this.system = system;
+    }
+
     @SerializedName("sys")
     @Expose
     private System system;

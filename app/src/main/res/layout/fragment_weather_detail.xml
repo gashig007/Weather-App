@@ -7,8 +7,9 @@
     android:orientation="vertical"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/tv_weather_text"
+    <EditText
+        android:layout_margin="16dp"
+        android:id="@+id/edittext_weather"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
@@ -18,35 +19,11 @@
         android:textStyle="bold"
         android:layout_marginTop="10dp"/>
 
-    <ImageView
-        android:id="@+id/iv_weather"
-        android:layout_width="200dp"
-        android:layout_gravity="center"
-        android:layout_height="200dp"
-        android:layout_marginTop="10dp"/>
-
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"/>
-
-    <TextView
-        android:id="@+id/tv_weather_status"
+    <Button
+        android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:textColor="@color/black"
-        tools:text="Status"
-        android:textSize="16sp"
-        android:layout_marginTop="10dp"/>
+        android:layout_margin="16dp"/>
 
-    <ImageView
-        android:id="@+id/iv_gr"
-        android:layout_width="200dp"
-        android:layout_gravity="center"
-        android:layout_height="200dp"
-        android:layout_marginTop="10dp"/>
 
 </LinearLayout>
