@@ -1,29 +1,34 @@
 package com.geektech.homework53.data.ui.weather_detail;
 
-import android.graphics.Bitmap;
-import android.graphics.Path;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
+import com.geektech.homework53.R;
 import com.geektech.homework53.base.BaseFragment;
-import com.geektech.homework53.common.Resource;
-import com.geektech.homework53.data.model.Weather;
 import com.geektech.homework53.databinding.FragmentWeatherDetailBinding;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.zxing.BarcodeFormat;
-import com.journeyapps.barcodescanner.BarcodeEncoder;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBinding> {
+import java.util.ArrayList;
+
+public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBinding> implements OnMapReadyCallback {
     private WeatherDetailViewModel viewModel;
+    private ArrayList<LatLng> markers = new ArrayList<>();
+    private Marker marker;
 
     @Override
     protected FragmentWeatherDetailBinding bind() {
@@ -34,6 +39,18 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(requireActivity()).get(WeatherDetailViewModel.class);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        FragmentManager fm = getChildFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.google_map);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();
+            fm.beginTransaction().replace(R.id.google_map, mapFragment).commit();
+        }
+        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -52,7 +69,7 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
                 if (binding.edittextWeather.getText().toString().isEmpty()) {
                     Toast.makeText(requireActivity(), "Напишите город", Toast.LENGTH_SHORT).show();
                 } else {
-                    navController.navigate(WeatherDetailFragmentDirections.actionWeatherDetailFragmentToWeatherFragment(binding.edittextWeather.getText().toString()));
+               //     navController.navigate(WeatherDetailFragmentDirections.actionWeatherDetailFragmentToWeatherFragment());
                 }
             }
         });
@@ -63,30 +80,60 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
 
     }
 
-/*    private void generateQr(int weatherId){
-        try {
-            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-            Bitmap bitmap = barcodeEncoder.encodeBitmap(String.valueOf(weatherId), BarcodeFormat.QR_CODE, 200, 200);
-            binding.ivGr.setImageBitmap(bitmap);
-        } catch (Exception e){
-            Log.e("Tag", "generateQR" + e.getLocalizedMessage());
-        }
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        /*googleMap.addMarker(new MarkerOptions()
+                .position(new LatLng(0, 0))
+                .title("Marker"));*/
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(@NonNull LatLng latLng) {
+                googleMap.clear();
+                MarkerOptions options = new MarkerOptions();
+                options.draggable(true);
+                options.title(latLng.toString());
+                options.position(latLng);
+                googleMap.addMarker(options);
+                googleMap.animateCamera(getCameraUpdate(latLng, 4f, 90f, 30f));
+                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(@NonNull Marker marker) {
+                        navController.navigate(WeatherDetailFragmentDirections.actionWeatherDetailFragmentToWeatherFragment(String.valueOf(marker.getPosition().latitude), String.valueOf(marker.getPosition().longitude)));
+                        Log.e("TAG",  String.valueOf(marker.getPosition().latitude));
+                    }
+                });
+            }
+        });
 
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(@NonNull Marker marker) {
+                marker.showInfoWindow();
+                return false;
+            }
+        });
+
+        googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDrag(@NonNull Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(@NonNull Marker marker) {
+                marker.setTitle(marker.getPosition().toString());
+                marker.showInfoWindow();
+            }
+
+            @Override
+            public void onMarkerDragStart(@NonNull Marker marker) {
+                marker.hideInfoWindow();
+            }
+        });
     }
 
-    private void loadingState() {
-        binding.tvWeatherStatus.setVisibility(View.GONE);
-        binding.tvWeatherText.setVisibility(View.GONE);
-        binding.ivWeather.setVisibility(View.GONE);
-        binding.ivGr.setVisibility(View.GONE);
-        binding.progress.setVisibility(View.VISIBLE);
+    private CameraUpdate getCameraUpdate(LatLng latLng, float zoom, float bearing, float titl) {
+        return CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(latLng)
+                .zoom(zoom).bearing(bearing).tilt(titl).build());
     }
-
-    private void baseState() {
-        binding.tvWeatherStatus.setVisibility(View.VISIBLE);
-        binding.tvWeatherText.setVisibility(View.VISIBLE);
-        binding.ivWeather.setVisibility(View.VISIBLE);
-        binding.ivGr.setVisibility(View.VISIBLE);
-        binding.progress.setVisibility(View.GONE);
-    }*/
 }

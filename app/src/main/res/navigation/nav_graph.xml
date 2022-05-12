@@ -10,9 +10,14 @@
         android:name="com.geektech.homework53.data.ui.WeatherFragment"
         android:label="fragment_weather"
         tools:layout="@layout/fragment_weather" >
+
         <argument
-            android:name="city"
-            android:defaultValue="Bishkek"
+            android:name="latitude"
+            app:argType="string"
+            app:nullable="true"/>
+
+        <argument
+            android:name="longitude"
             app:argType="string"
             app:nullable="true"/>
         <action
@@ -28,7 +33,12 @@
             android:id="@+id/action_weatherDetailFragment_to_weatherFragment"
             app:destination="@id/weatherFragment" >
             <argument
-                android:name="city"
+                android:name="latitude"
+                app:argType="string"
+                app:nullable="false"/>
+
+            <argument
+                android:name="longitude"
                 app:argType="string"
                 app:nullable="false"/>
 

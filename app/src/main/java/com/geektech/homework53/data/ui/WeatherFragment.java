@@ -73,7 +73,7 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
         } catch (Exception e) {
             Log.e("Error:", e.getLocalizedMessage());
         }
-        weatherViewModel.getWeatherByCityName(args.getCity());
+      //  weatherViewModel.getWeatherByCityName(args.getCity());
     }
 
     @Override
@@ -88,12 +88,12 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
 
     @Override
     protected void callRequests() {
-        Log.e("args", args.getCity());
+     //   Log.e("args", args.getCity());
 
         if (args != null) {
 //            args = WeatherFragmentArgs.fromBundle(getArguments());
-            Log.e("args", args.getCity());
-            cityName = args.getCity();
+            /*Log.e("args", args.getCity());
+            cityName = args.getCity();*/
         } else {
             Log.e("args", "args is empty");
             cityName = "Bishkek";
