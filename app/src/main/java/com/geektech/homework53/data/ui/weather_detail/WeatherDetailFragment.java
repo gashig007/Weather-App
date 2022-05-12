@@ -26,7 +26,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 
 public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBinding> implements OnMapReadyCallback {
-    private WeatherDetailViewModel viewModel;
     private ArrayList<LatLng> markers = new ArrayList<>();
     private Marker marker;
 
@@ -38,12 +37,10 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(WeatherDetailViewModel.class);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected void setupViews() {
         FragmentManager fm = getChildFragmentManager();
         SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.google_map);
         if (mapFragment == null) {
@@ -51,10 +48,6 @@ public class WeatherDetailFragment extends BaseFragment<FragmentWeatherDetailBin
             fm.beginTransaction().replace(R.id.google_map, mapFragment).commit();
         }
         mapFragment.getMapAsync(this);
-    }
-
-    @Override
-    protected void setupViews() {
     }
 
     @Override

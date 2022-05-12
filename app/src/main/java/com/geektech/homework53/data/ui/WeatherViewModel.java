@@ -16,16 +16,15 @@ public class WeatherViewModel extends ViewModel {
     public LiveData<Resource<WeatherApp>> liveData;
     private MainRepositoryImpl repository;
 
+    public WeatherViewModel() {
+    }
+
     @Inject
     public WeatherViewModel(MainRepositoryImpl repository) {
         this.repository = repository;
     }
 
-    public WeatherViewModel() {
-    }
-
-
-    public void getWeatherByCityName(String cityName) {
-        liveData = repository.getWeatherByCityName(cityName);
+    public void getWeatherByMap(String latitude, String longitude) {
+        liveData = repository.getWeatherByMap(latitude, longitude);
     }
 }

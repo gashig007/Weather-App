@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.geektech.homework53.common.Resource;
 import com.geektech.homework53.data.model.Weather;
+import com.geektech.homework53.data.model.WeatherApp;
+import com.geektech.homework53.data.remote.WeatherApi;
 import com.geektech.homework53.data.repositories.MainRepositoryImpl;
 
 import javax.inject.Inject;
@@ -13,15 +15,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class WeatherDetailViewModel extends ViewModel {
-    private MainRepositoryImpl mainRepository;
-    public LiveData<Resource<Weather>> liveData;
+    private MainRepositoryImpl repository;
+    public LiveData<Resource<WeatherApp>> liveData;
 
     @Inject
-    public WeatherDetailViewModel(MainRepositoryImpl mainRepository) {
-        this.mainRepository = mainRepository;
+    public WeatherDetailViewModel(MainRepositoryImpl repository) {
+        this.repository = repository;
     }
 
-    public void getWeatherById(Integer id){
-        liveData = mainRepository.getWeatherById(id);
+    public void getWeatherByMap(String latitude, String longitude) {
+        liveData = repository.getWeatherByMap(latitude, longitude);
     }
 }
