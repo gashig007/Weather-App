@@ -39,6 +39,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -73,7 +74,7 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
         } catch (Exception e) {
             Log.e("Error:", e.getLocalizedMessage());
         }
-      //  weatherViewModel.getWeatherByCityName(args.getCity());
+        //  weatherViewModel.getWeatherByCityName(args.getCity());
     }
 
     @Override
@@ -88,7 +89,8 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
 
     @Override
     protected void callRequests() {
-     //   Log.e("args", args.getCity());
+        weatherViewModel.getWeatherByMap(args.getLatitude(), args.getLongitude());
+        //   Log.e("args", args.getCity());
 //
 //        if (args != null) {
 //            args = WeatherFragmentArgs.fromBundle(getArguments());
@@ -112,7 +114,6 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
 
     }
 
-    @Override
     protected void setupObservers() {
         weatherViewModel.liveData.observe(getViewLifecycleOwner(), new Observer<Resource<WeatherApp>>() {
             @Override
@@ -128,7 +129,6 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
                         binding.cardView.setVisibility(View.VISIBLE);
                         binding.progressBar.setVisibility(View.GONE);
                         binding.imageIv.setVisibility(View.VISIBLE);
-
                         wind = resource.data.getWind();
                         weather = resource.data;
                         main = resource.data.getMain();
@@ -140,71 +140,102 @@ public class WeatherFragment extends BaseFragment<FragmentWeatherBinding> implem
                     }
                     case ERROR: {
                         Toast.makeText(requireContext(), resource.msg, Toast.LENGTH_SHORT).show();
-                        wind = dao.getWeather().getWind();
-                        weather = dao.getWeather();
-                        main = dao.getWeather().getMain();
-                        sys = dao.getWeather().getSys();
-                        weatherList = (ArrayList<Weather>) dao.getWeather().getWeather();
+                        wind = dao.getWeather().get(dao.getWeather().size() - 1).getWind();
+                        weather = dao.getWeather().get(dao.getWeather().size() - 1);
+                        main = dao.getWeather().get(dao.getWeather().size() - 1).getMain();
+                        sys = dao.getWeather().get(dao.getWeather().size() - 1).getSys();
                         binding.progressBar.setVisibility(View.GONE);
-                        setCurrentWeather();
+                        setCurrentWeatherRoom(dao.getWeather());
                         binding.cardView.setVisibility(View.VISIBLE);
                         binding.imageIv.setVisibility(View.VISIBLE);
-
                         break;
                     }
                 }
             }
+
+            @SuppressLint("SetTextI18n")
+            private void setCurrentWeather() {
+
+                binding.locationTv.setText(cityName);
+                binding.dateTv.setText(getDate(java.lang.System.currentTimeMillis()));
+
+                //Setting weather status
+                binding.weatherStatus.setText(weatherList.get(0).getMain());
+                Glide.with(requireContext())
+                        .load("https://openweathermap.org/img/wn/" + weatherList.get(0).getIcon() + ".png")
+                        .override(100, 100)
+                        .into(binding.weatherStatusImg);
+
+                //Setting temperature
+                binding.tempTv.setText(Math.round(main.getTemp() - 273.15) + "");
+                binding.minTempTv.setText(Math.round(main.getTempMin() - 273.15) + "°C");
+                binding.maxTempTv.setText(Math.round(main.getTempMax() - 273.15) + "°C");
+
+                //Setting extras
+                binding.humidityTv.setText(main.getHumidity() + "%");
+                binding.pressureTv.setText(main.getPressure() + "mBar");
+                binding.windTv.setText(wind.getSpeed() + "km/h");
+
+                //Setting sunset and sunrise
+                binding.sunriseTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunrise())));
+                binding.sunsetTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunset())));
+
+                //Setting daytime
+                int daytime = sys.getSunset() - sys.getSunrise();
+                binding.daytimeTv.setText(getHours(daytime));
+            }
+
+            private void setCurrentWeatherRoom(List<WeatherApp> weatherRoom) {
+
+                binding.locationTv.setText(cityName);
+                binding.dateTv.setText(getDate(java.lang.System.currentTimeMillis()));
+
+                //Setting weather status
+                binding.weatherStatus.setText(weatherList.get(0).getMain());
+//        Glide.with(requireContext())
+//                .load("https://openweathermap.org/img/wn/" + weatherList.get(0).getIcon() + ".png")
+//                .override(100, 100)
+//                .into(binding.weatherStatusImg);
+
+                //Setting temperature
+                binding.tempTv.setText(Math.round(weatherRoom.get(weatherRoom.size() - 1).getMain().getTemp() - 273.15) + "");
+                binding.minTempTv.setText(Math.round(weatherRoom.get(weatherRoom.size() - 1).getMain().getTempMin() - 273.15) + "°C");
+                binding.maxTempTv.setText(Math.round(weatherRoom.get(weatherRoom.size() - 1).getMain().getTempMax() - 273.15) + "°C");
+
+                //Setting extras
+                binding.humidityTv.setText(weatherRoom.get(weatherRoom.size() - 1).getMain().getHumidity() + "%");
+                binding.pressureTv.setText(weatherRoom.get(weatherRoom.size() - 1).getMain().getPressure() + "mBar");
+                binding.windTv.setText(weatherRoom.get(weatherRoom.size() - 1).getWind().getSpeed() + "km/h");
+
+                //Setting sunset and sunrise
+                binding.sunriseTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunrise())));
+                binding.sunsetTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunset())));
+
+                //Setting daytime
+                int daytime = sys.getSunset() - sys.getSunrise();
+                binding.daytimeTv.setText(getHours(daytime));
+            }
+
+            @SuppressLint("SimpleDateFormat")
+            private String getDate(Long date) {
+                return new SimpleDateFormat("EEE, d MMMM yyyy | h:mm a").format(date);
+            }
+
+            private String getTime(Context context, Long time) {
+                return DateUtils.formatDateTime(context, time * 1000, DateUtils.FORMAT_SHOW_TIME);
+            }
+
+            private String getHours(int time) {
+
+                int hours = (int) TimeUnit.SECONDS.toHours(time);
+                int minutes = (int) ((int) TimeUnit.SECONDS.toMinutes(time) -
+                        (TimeUnit.SECONDS.toHours(time) * 60));
+
+                return hours + "h " + minutes + "m";
+            }
+
+
         });
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void setCurrentWeather() {
-
-        binding.locationTv.setText(cityName);
-        binding.dateTv.setText(getDate(java.lang.System.currentTimeMillis()));
-
-        //Setting weather status
-        binding.weatherStatus.setText(weatherList.get(0).getMain());
-        Glide.with(requireContext())
-                .load("https://openweathermap.org/img/wn/" + weatherList.get(0).getIcon() + ".png")
-                .override(100, 100)
-                .into(binding.weatherStatusImg);
-
-        //Setting temperature
-        binding.tempTv.setText(Math.round(main.getTemp() - 273.15) + "");
-        binding.minTempTv.setText(Math.round(main.getTempMin() - 273.15) + "°C");
-        binding.maxTempTv.setText(Math.round(main.getTempMax() - 273.15) + "°C");
-
-        //Setting extras
-        binding.humidityTv.setText(main.getHumidity() + "%");
-        binding.pressureTv.setText(main.getPressure() + "mBar");
-        binding.windTv.setText(wind.getSpeed() + "km/h");
-
-        //Setting sunset and sunrise
-        binding.sunriseTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunrise())));
-        binding.sunsetTv.setText(getTime(requireContext(), Long.valueOf(sys.getSunset())));
-
-        //Setting daytime
-        int daytime = sys.getSunset() - sys.getSunrise();
-        binding.daytimeTv.setText(getHours(daytime));
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private String getDate(Long date) {
-        return new SimpleDateFormat("EEE, d MMMM yyyy | h:mm a").format(date);
-    }
-
-    private String getTime(Context context, Long time) {
-        return DateUtils.formatDateTime(context, time * 1000, DateUtils.FORMAT_SHOW_TIME);
-    }
-
-    private String getHours(int time) {
-
-        int hours = (int) TimeUnit.SECONDS.toHours(time);
-        int minutes = (int) ((int) TimeUnit.SECONDS.toMinutes(time) -
-                (TimeUnit.SECONDS.toHours(time) * 60));
-
-        return hours + "h " + minutes + "m";
     }
 
     @Override

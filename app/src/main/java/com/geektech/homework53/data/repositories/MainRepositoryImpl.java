@@ -12,6 +12,8 @@ import com.geektech.homework53.data.model.WeatherApp;
 import com.geektech.homework53.data.remote.WeatherApi;
 import com.geektech.homework53.domain.repository.MainRepository;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import retrofit2.Call;
@@ -51,6 +53,10 @@ public class MainRepositoryImpl implements MainRepository {
         });
 
         return liveData;
+    }
+
+    public List<WeatherApp> getWeather() {
+        return dao.getWeather();
     }
 
 //    @Override

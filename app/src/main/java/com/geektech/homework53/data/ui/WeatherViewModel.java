@@ -7,6 +7,8 @@ import com.geektech.homework53.common.Resource;
 import com.geektech.homework53.data.model.WeatherApp;
 import com.geektech.homework53.data.repositories.MainRepositoryImpl;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -26,5 +28,9 @@ public class WeatherViewModel extends ViewModel {
 
     public void getWeatherByMap(String latitude, String longitude) {
         liveData = repository.getWeatherByMap(latitude, longitude);
+    }
+
+    public List<WeatherApp> getWeatherRoom() {
+        return repository.getWeather();
     }
 }
